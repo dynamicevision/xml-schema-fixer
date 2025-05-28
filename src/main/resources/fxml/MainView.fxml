@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <top>
+      <VBox>
+         <MenuBar>
+            <Menu text="File">
+               <MenuItem text="Open XML..." />
+               <MenuItem text="Open Schema..." />
+               <SeparatorMenuItem />
+               <MenuItem text="Exit" />
+            </Menu>
+            <Menu text="Tools">
+               <MenuItem text="Validate" />
+               <MenuItem text="Fix" />
+               <MenuItem text="Batch Process..." />
+            </Menu>
+            <Menu text="View">
+               <MenuItem text="Clear Log" />
+               <CheckMenuItem text="Verbose Logging" />
+            </Menu>
+            <Menu text="Help">
+               <MenuItem text="About" />
+               <MenuItem text="User Guide" />
+            </Menu>
+         </MenuBar>
+         <ToolBar>
+            <Button text="Validate" fx:id="validateButton" />
+            <Button text="Fix" fx:id="fixButton" />
+            <Separator orientation="VERTICAL" />
+            <Button text="Batch Process" fx:id="batchProcessButton" />
+         </ToolBar>
+      </VBox>
+   </top>
+   
+   <center>
+      <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+         
+         <!-- Main Processing Tab -->
+         <Tab text="XML Processing" fx:id="validationTab">
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="15" right="15" bottom="15" left="15" />
+               </padding>
+               
+               <!-- File Selection Section -->
+               <TitledPane text="File Selection" expanded="true">
+                  <GridPane hgap="10" vgap="10">
+                     <columnConstraints>
+                        <ColumnConstraints minWidth="100" prefWidth="120" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="80" prefWidth="80" />
+                     </columnConstraints>
+                     
+                     <Label text="XML File:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                     <TextField fx:id="xmlFileTextField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                     <Button fx:id="browseXmlButton" text="Browse..." GridPane.rowIndex="0" GridPane.columnIndex="2" />
+                     
+                     <Label text="Schema File:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                     <TextField fx:id="schemaFileTextField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                     <Button fx:id="browseSchemaButton" text="Browse..." GridPane.rowIndex="1" GridPane.columnIndex="2" />
+                     
+                     <Label text="Output File:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                     <TextField fx:id="outputFileTextField" GridPane.rowIndex="2" GridPane.columnIndex="1" 
+                               promptText="Leave empty for automatic naming" />
+                     <Button fx:id="browseOutputButton" text="Browse..." GridPane.rowIndex="2" GridPane.columnIndex="2" />
+                  </GridPane>
+               </TitledPane>
+               
+               <!-- Options Section -->
+               <TitledPane text="Options" expanded="true">
+                  <VBox spacing="8">
+                     <CheckBox fx:id="createBackupCheckBox" text="Create backup of original file" />
+                     <CheckBox fx:id="verboseLoggingCheckBox" text="Enable verbose logging" />
+                     <CheckBox fx:id="generateReportCheckBox" text="Generate detailed report" />
+                  </VBox>
+               </TitledPane>
+               
+               <!-- Action Buttons -->
+               <HBox spacing="10" alignment="CENTER">
+                  <Button text="Validate XML" onAction="#validateXml" prefWidth="120" />
+                  <Button text="Fix XML" onAction="#fixXml" prefWidth="120" />
+                  <Separator orientation="VERTICAL" />
+                  <Button text="Clear Log" onAction="#clearLog" />
+               </HBox>
+               
+               <!-- Log Output -->
+               <TitledPane text="Processing Log" expanded="true" VBox.vgrow="ALWAYS">
+                  <TextArea fx:id="logTextArea" prefRowCount="10" VBox.vgrow="ALWAYS" />
+               </TitledPane>
+            </VBox>
+         </Tab>
+         
+         <!-- Batch Processing Tab -->
+         <Tab text="Batch Processing" fx:id="batchTab">
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="15" right="15" bottom="15" left="15" />
+               </padding>
+               
+               <Label text="Batch processing interface will be implemented here" />
+               <Button text="Select Directory..." />
+               <Button text="Process All Files" onAction="#batchProcess" />
+            </VBox>
+         </Tab>
+         
+         <!-- Settings Tab -->
+         <Tab text="Settings" fx:id="settingsTab">
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="15" right="15" bottom="15" left="15" />
+               </padding>
+               
+               <TitledPane text="Processing Settings" expanded="true">
+                  <GridPane hgap="10" vgap="10">
+                     <columnConstraints>
+                        <ColumnConstraints minWidth="150" prefWidth="150" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     
+                     <Label text="Max File Size (MB):" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                     <TextField text="500" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                     
+                     <Label text="Thread Count:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                     <TextField text="4" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                     
+                     <Label text="Buffer Size (KB):" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                     <TextField text="64" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                  </GridPane>
+               </TitledPane>
+               
+               <TitledPane text="Report Settings" expanded="true">
+                  <VBox spacing="8">
+                     <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Default Format:" />
+                        <ComboBox>
+                           <items>
+                              <String fx:value="HTML" />
+                              <String fx:value="JSON" />
+                              <String fx:value="Text" />
+                           </items>
+                           <value>
+                              <String fx:value="HTML" />
+                           </value>
+                        </ComboBox>
+                     </HBox>
+                     <CheckBox text="Include warnings in reports" selected="true" />
+                     <CheckBox text="Include processing statistics" selected="true" />
+                  </VBox>
+               </TitledPane>
+            </VBox>
+         </Tab>
+      </TabPane>
+   </center>
+   
+   <bottom>
+      <VBox>
+         <ProgressBar fx:id="progressBar" prefHeight="8" maxWidth="Infinity" />
+         <HBox spacing="10" alignment="CENTER_LEFT">
+            <padding>
+               <Insets top="5" right="10" bottom="5" left="10" />
+            </padding>
+            <Label fx:id="statusLabel" text="Ready" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="XML Schema Fixer v1.0.0" />
+         </HBox>
+      </VBox>
+   </bottom>
+</BorderPane>
+
