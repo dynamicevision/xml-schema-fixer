@@ -1,0 +1,3 @@
+@echo off
+echo Starting XML Schema Fixer GUI...
+mvn javafx:run
