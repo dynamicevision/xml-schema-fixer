@@ -4,6 +4,7 @@ import com.xmlfixer.correction.model.CorrectionAction;
 import com.xmlfixer.schema.model.SchemaElement;
 import com.xmlfixer.validation.model.ErrorType;
 import com.xmlfixer.validation.model.ValidationError;
+import org.w3c.dom.Document;
 
 import java.util.List;
 import java.util.Map;
@@ -104,4 +105,7 @@ public interface CorrectionStrategy {
                 return 10;
         }
     }
+
+    boolean canCorrect(CorrectionAction action, Document document, SchemaElement rootSchema);
+    boolean applyCorrection(CorrectionAction action, Document document, SchemaElement rootSchema);
 }

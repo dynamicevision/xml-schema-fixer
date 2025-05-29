@@ -19,6 +19,9 @@ public class CorrectionPlan {
     private Map<CorrectionAction.ActionType, List<CorrectionAction>> actionsByType;
     private Set<String> affectedPaths;
     private int priority;
+    private List<CorrectionGroup> correctionGroups;
+    private int totalActions;
+    private long estimatedTimeMs;
 
     // Action priority mapping (lower number = higher priority)
     private static final Map<CorrectionAction.ActionType, Integer> ACTION_PRIORITIES = new HashMap<>();
@@ -41,7 +44,20 @@ public class CorrectionPlan {
         this.actionsByType = new HashMap<>();
         this.affectedPaths = new HashSet<>();
         this.priority = 0;
+        this.correctionGroups = new ArrayList<>();
     }
+
+    // Getters and setters
+    public List<CorrectionGroup> getCorrectionGroups() { return correctionGroups; }
+    public void setCorrectionGroups(List<CorrectionGroup> correctionGroups) {
+        this.correctionGroups = correctionGroups;
+    }
+
+    public int getTotalActions() { return totalActions; }
+    public void setTotalActions(int totalActions) { this.totalActions = totalActions; }
+
+    public long getEstimatedTimeMs() { return estimatedTimeMs; }
+    public void setEstimatedTimeMs(long estimatedTimeMs) { this.estimatedTimeMs = estimatedTimeMs; }
 
     /**
      * Adds a single correction action to the plan

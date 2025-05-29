@@ -1,5 +1,6 @@
 package com.xmlfixer.correction.strategies;
 
+import com.xmlfixer.correction.DomManipulator;
 import com.xmlfixer.correction.model.CorrectionAction;
 import com.xmlfixer.schema.model.SchemaElement;
 import com.xmlfixer.validation.model.ErrorType;
@@ -7,6 +8,8 @@ import com.xmlfixer.validation.model.ValidationError;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -25,10 +28,12 @@ public class OrderingStrategy implements CorrectionStrategy {
             ErrorType.INVALID_ELEMENT_ORDER,
             ErrorType.UNEXPECTED_ELEMENT
     );
+    private final DomManipulator domManipulator;
 
     @Inject
-    public OrderingStrategy() {
+    public OrderingStrategy(DomManipulator domManipulator) {
         logger.info("OrderingStrategy initialized");
+        this.domManipulator = domManipulator;
     }
 
     @Override
@@ -78,6 +83,42 @@ public class OrderingStrategy implements CorrectionStrategy {
 
         logger.debug("Generated {} ordering correction actions", actions.size());
         return actions;
+    }
+
+    @Override
+    public boolean canCorrect(CorrectionAction action, Document document, SchemaElement rootSchema) {
+        return action.getRelatedErrorType() == ErrorType.INVALID_ELEMENT_ORDER;
+    }
+
+    @Override
+    public boolean applyCorrection(CorrectionAction action, Document document, SchemaElement rootSchema) {
+        String xPath = action.getxPath();
+
+        logger.debug("Correcting element ordering at path: {}", xPath);
+
+        try {
+            Element parentElement = domManipulator.findElement(document, xPath);
+            if (parentElement == null) {
+                logger.warn("Could not find parent element for ordering correction: {}", xPath);
+                return false;
+            }
+
+            SchemaElement schemaElement = StrategyHelper.findSchemaElement(rootSchema, parentElement.getNodeName());
+            if (schemaElement == null || !schemaElement.hasChildren()) {
+                return false;
+            }
+
+            // Get desired order from schema
+            List<String> desiredOrder = schemaElement.getChildren().stream()
+                    .map(SchemaElement::getName)
+                    .collect(Collectors.toList());
+
+            return domManipulator.reorderElements(parentElement, desiredOrder);
+
+        } catch (Exception e) {
+            logger.error("Error correcting element ordering: {}", xPath, e);
+            return false;
+        }
     }
 
     /**

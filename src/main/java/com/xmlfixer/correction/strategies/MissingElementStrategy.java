@@ -1,5 +1,6 @@
 package com.xmlfixer.correction.strategies;
 
+import com.xmlfixer.correction.DomManipulator;
 import com.xmlfixer.correction.model.CorrectionAction;
 import com.xmlfixer.schema.model.ElementConstraint;
 import com.xmlfixer.schema.model.SchemaElement;
@@ -8,6 +9,8 @@ import com.xmlfixer.validation.model.ValidationError;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -20,15 +23,16 @@ import java.util.*;
 public class MissingElementStrategy implements CorrectionStrategy {
 
     private static final Logger logger = LoggerFactory.getLogger(MissingElementStrategy.class);
-
+    private final DomManipulator domManipulator;
     private static final List<ErrorType> SUPPORTED_ERROR_TYPES = Arrays.asList(
             ErrorType.MISSING_REQUIRED_ELEMENT,
             ErrorType.TOO_FEW_OCCURRENCES
     );
 
     @Inject
-    public MissingElementStrategy() {
+    public MissingElementStrategy(DomManipulator domManipulator) {
         logger.info("MissingElementStrategy initialized");
+        this.domManipulator = domManipulator;
     }
 
     @Override
@@ -73,6 +77,67 @@ public class MissingElementStrategy implements CorrectionStrategy {
 
         logger.debug("Generated {} missing element correction actions", actions.size());
         return actions;
+    }
+
+    @Override
+    public boolean canCorrect(CorrectionAction action, Document document, SchemaElement rootSchema) {
+        return action.getRelatedErrorType() == ErrorType.MISSING_REQUIRED_ELEMENT;
+    }
+
+    @Override
+    public boolean applyCorrection(CorrectionAction action, Document document, SchemaElement rootSchema) {
+        String elementName = action.getElementName();
+        String xPath = action.getxPath();
+
+        logger.debug("Adding missing required element: {} at path: {}", elementName, xPath);
+
+        try {
+            Element parentElement = StrategyHelper.findParentElement(document, xPath, elementName);
+            if (parentElement == null) {
+                logger.warn("Could not find parent element for missing element: {}", elementName);
+                return false;
+            }
+
+            SchemaElement schemaElement = findSchemaElement(rootSchema, elementName);
+            Element newElement = createElementFromSchema(document, schemaElement);
+
+            if (newElement != null) {
+                parentElement.appendChild(newElement);
+                logger.debug("Successfully added missing element: {}", elementName);
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            logger.error("Error adding missing element: {}", elementName, e);
+            return false;
+        }
+    }
+
+    private Element createElementFromSchema(Document document, SchemaElement schemaElement) {
+        if (schemaElement == null) {
+            return null;
+        }
+
+        String elementName = schemaElement.getName();
+        String defaultValue = schemaElement.getDefaultValue();
+
+        Element element = domManipulator.createElement(document, elementName, defaultValue);
+
+        // Add required child elements
+        if (schemaElement.hasChildren()) {
+            for (SchemaElement child : schemaElement.getChildren()) {
+                if (child.isRequired()) {
+                    Element childElement = createElementFromSchema(document, child);
+                    if (childElement != null) {
+                        element.appendChild(childElement);
+                    }
+                }
+            }
+        }
+
+        return element;
     }
 
     /**
