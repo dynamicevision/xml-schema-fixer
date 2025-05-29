@@ -1,9 +1,6 @@
 package com.xmlfixer.correction;
 
-import com.xmlfixer.correction.model.CorrectionAction;
-import com.xmlfixer.correction.model.CorrectionGroup;
-import com.xmlfixer.correction.model.CorrectionPlan;
-import com.xmlfixer.correction.model.CorrectionResult;
+import com.xmlfixer.correction.model.*;
 import com.xmlfixer.correction.strategies.*;
 import com.xmlfixer.schema.model.SchemaElement;
 import com.xmlfixer.validation.model.ValidationResult;
@@ -240,7 +237,7 @@ public class CorrectionEngine {
         CorrectionStatistics stats = new CorrectionStatistics();
 
         if (result.getActionsApplied() != null) {
-            Map<CorrectionAction.ActionType, Long> actionTypeCounts = result.getActionsApplied()
+            Map<ActionType, Long> actionTypeCounts = result.getActionsApplied()
                     .stream()
                     .collect(Collectors.groupingBy(
                             CorrectionAction::getActionType,
@@ -274,7 +271,7 @@ public class CorrectionEngine {
         private int failedCorrections;
         private long correctionTimeMs;
         private double successRate;
-        private Map<CorrectionAction.ActionType, Long> actionTypeDistribution;
+        private Map<ActionType, Long> actionTypeDistribution;
 
         // Getters and setters
         public int getTotalCorrections() { return totalCorrections; }
@@ -289,10 +286,10 @@ public class CorrectionEngine {
         public double getSuccessRate() { return successRate; }
         public void setSuccessRate(double successRate) { this.successRate = successRate; }
 
-        public Map<CorrectionAction.ActionType, Long> getActionTypeDistribution() {
+        public Map<ActionType, Long> getActionTypeDistribution() {
             return actionTypeDistribution;
         }
-        public void setActionTypeDistribution(Map<CorrectionAction.ActionType, Long> actionTypeDistribution) {
+        public void setActionTypeDistribution(Map<ActionType, Long> actionTypeDistribution) {
             this.actionTypeDistribution = actionTypeDistribution;
         }
 

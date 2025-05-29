@@ -1,6 +1,7 @@
 package com.xmlfixer.correction.strategies;
 
 import com.xmlfixer.correction.DomManipulator;
+import com.xmlfixer.correction.model.ActionType;
 import com.xmlfixer.correction.model.CorrectionAction;
 import com.xmlfixer.schema.model.SchemaElement;
 import com.xmlfixer.validation.model.ErrorType;
@@ -243,7 +244,7 @@ public class OrderingStrategy implements CorrectionStrategy {
      */
     private CorrectionAction createMoveAction(String parentPath, ElementMove move) {
         CorrectionAction action = new CorrectionAction(
-                CorrectionAction.ActionType.MOVE_ELEMENT,
+                ActionType.MOVE_ELEMENT,
                 String.format("Move element '%s' to correct position", move.elementName)
         );
 
@@ -279,7 +280,7 @@ public class OrderingStrategy implements CorrectionStrategy {
         }
 
         CorrectionAction action = new CorrectionAction(
-                CorrectionAction.ActionType.MOVE_ELEMENT,
+                ActionType.MOVE_ELEMENT,
                 String.format("Reposition unexpected element '%s'", elementName)
         );
 

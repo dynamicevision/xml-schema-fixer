@@ -16,7 +16,7 @@ public class CorrectionPlan {
 
     private List<CorrectionAction> actions;
     private Map<String, List<CorrectionAction>> actionsByPath;
-    private Map<CorrectionAction.ActionType, List<CorrectionAction>> actionsByType;
+    private Map<ActionType, List<CorrectionAction>> actionsByType;
     private Set<String> affectedPaths;
     private int priority;
     private List<CorrectionGroup> correctionGroups;
@@ -24,18 +24,18 @@ public class CorrectionPlan {
     private long estimatedTimeMs;
 
     // Action priority mapping (lower number = higher priority)
-    private static final Map<CorrectionAction.ActionType, Integer> ACTION_PRIORITIES = new HashMap<>();
+    private static final Map<ActionType, Integer> ACTION_PRIORITIES = new HashMap<>();
     static {
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.ADD_ELEMENT, 1);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.ADD_ATTRIBUTE, 2);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.REORDER_ELEMENTS, 3);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.MOVE_ELEMENT, 4);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.MODIFY_ELEMENT, 5);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.MODIFY_ATTRIBUTE, 6);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.CHANGE_TEXT_CONTENT, 7);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.REMOVE_ATTRIBUTE, 8);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.REMOVE_ELEMENT, 9);
-        ACTION_PRIORITIES.put(CorrectionAction.ActionType.FIX_NAMESPACE, 10);
+        ACTION_PRIORITIES.put(ActionType.ADD_ELEMENT, 1);
+        ACTION_PRIORITIES.put(ActionType.ADD_ATTRIBUTE, 2);
+        ACTION_PRIORITIES.put(ActionType.REORDER_ELEMENTS, 3);
+        ACTION_PRIORITIES.put(ActionType.MOVE_ELEMENT, 4);
+        ACTION_PRIORITIES.put(ActionType.MODIFY_ELEMENT, 5);
+        ACTION_PRIORITIES.put(ActionType.MODIFY_ATTRIBUTE, 6);
+        ACTION_PRIORITIES.put(ActionType.CHANGE_TEXT_CONTENT, 7);
+        ACTION_PRIORITIES.put(ActionType.REMOVE_ATTRIBUTE, 8);
+        ACTION_PRIORITIES.put(ActionType.REMOVE_ELEMENT, 9);
+        ACTION_PRIORITIES.put(ActionType.FIX_NAMESPACE, 10);
     }
 
     public CorrectionPlan() {
@@ -186,21 +186,21 @@ public class CorrectionPlan {
 
         // Check for add/remove conflicts
         boolean hasAdd = pathActions.stream().anyMatch(a ->
-                a.getActionType() == CorrectionAction.ActionType.ADD_ELEMENT);
+                a.getActionType() == ActionType.ADD_ELEMENT);
         boolean hasRemove = pathActions.stream().anyMatch(a ->
-                a.getActionType() == CorrectionAction.ActionType.REMOVE_ELEMENT);
+                a.getActionType() == ActionType.REMOVE_ELEMENT);
 
         if (hasAdd && hasRemove) {
             // Keep add, remove remove (structural fixes take priority)
             pathActions.stream()
-                    .filter(a -> a.getActionType() == CorrectionAction.ActionType.REMOVE_ELEMENT)
+                    .filter(a -> a.getActionType() == ActionType.REMOVE_ELEMENT)
                     .forEach(conflictsToRemove::add);
         }
 
         // Check for multiple modifications of the same element
         List<CorrectionAction> modifications = pathActions.stream()
-                .filter(a -> a.getActionType() == CorrectionAction.ActionType.MODIFY_ELEMENT ||
-                        a.getActionType() == CorrectionAction.ActionType.CHANGE_TEXT_CONTENT)
+                .filter(a -> a.getActionType() == ActionType.MODIFY_ELEMENT ||
+                        a.getActionType() == ActionType.CHANGE_TEXT_CONTENT)
                 .collect(Collectors.toList());
 
         if (modifications.size() > 1) {
@@ -281,7 +281,7 @@ public class CorrectionPlan {
         return actionsByPath.getOrDefault(path, Collections.emptyList());
     }
 
-    public List<CorrectionAction> getActionsByType(CorrectionAction.ActionType type) {
+    public List<CorrectionAction> getActionsByType(ActionType type) {
         return actionsByType.getOrDefault(type, Collections.emptyList());
     }
 
@@ -300,7 +300,7 @@ public class CorrectionPlan {
 
         // Count by action type
         summary.actionsByType = new HashMap<>();
-        for (CorrectionAction.ActionType type : CorrectionAction.ActionType.values()) {
+        for (ActionType type : ActionType.values()) {
             int count = actionsByType.getOrDefault(type, Collections.emptyList()).size();
             if (count > 0) {
                 summary.actionsByType.put(type, count);
@@ -322,7 +322,7 @@ public class CorrectionPlan {
     public static class PlanSummary {
         public int totalActions;
         public int affectedPaths;
-        public Map<CorrectionAction.ActionType, Integer> actionsByType;
+        public Map<ActionType, Integer> actionsByType;
 
         @Override
         public String toString() {

@@ -1,6 +1,7 @@
 package com.xmlfixer.correction.strategies;
 
 import com.xmlfixer.correction.DomManipulator;
+import com.xmlfixer.correction.model.ActionType;
 import com.xmlfixer.correction.model.CorrectionAction;
 import com.xmlfixer.schema.model.ElementConstraint;
 import com.xmlfixer.schema.model.SchemaElement;
@@ -160,7 +161,7 @@ public class MissingElementStrategy implements CorrectionStrategy {
         }
 
         CorrectionAction action = new CorrectionAction(
-                CorrectionAction.ActionType.ADD_ELEMENT,
+                ActionType.ADD_ELEMENT,
                 "Add missing required element: " + elementName
         );
 

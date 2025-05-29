@@ -1,9 +1,6 @@
 package com.xmlfixer.correction.strategies;
 
-import com.xmlfixer.correction.model.CorrectionAction;
-import com.xmlfixer.correction.model.CorrectionGroup;
-import com.xmlfixer.correction.model.CorrectionGroupType;
-import com.xmlfixer.correction.model.CorrectionPlan;
+import com.xmlfixer.correction.model.*;
 import com.xmlfixer.schema.model.SchemaElement;
 import com.xmlfixer.validation.model.ValidationError;
 import com.xmlfixer.validation.model.ErrorType;
@@ -99,7 +96,7 @@ public class CorrectionPlanner {
         action.setElementName(error.getElementName());
 
         // Set action type based on error type
-        CorrectionAction.ActionType actionType = mapErrorToActionType(error.getErrorType());
+        ActionType actionType = mapErrorToActionType(error.getErrorType());
         action.setActionType(actionType);
 
         // Set old/new values if available
@@ -116,29 +113,29 @@ public class CorrectionPlanner {
     /**
      * Maps error types to correction action types
      */
-    private CorrectionAction.ActionType mapErrorToActionType(ErrorType errorType) {
+    private ActionType mapErrorToActionType(ErrorType errorType) {
         switch (errorType) {
             case MISSING_REQUIRED_ELEMENT:
-                return CorrectionAction.ActionType.ADD_ELEMENT;
+                return ActionType.ADD_ELEMENT;
             case MISSING_REQUIRED_ATTRIBUTE:
-                return CorrectionAction.ActionType.ADD_ATTRIBUTE;
+                return ActionType.ADD_ATTRIBUTE;
             case INVALID_ELEMENT_ORDER:
-                return CorrectionAction.ActionType.REORDER_ELEMENTS;
+                return ActionType.REORDER_ELEMENTS;
             case TOO_MANY_OCCURRENCES:
-                return CorrectionAction.ActionType.REMOVE_ELEMENT;
+                return ActionType.REMOVE_ELEMENT;
             case TOO_FEW_OCCURRENCES:
-                return CorrectionAction.ActionType.ADD_ELEMENT;
+                return ActionType.ADD_ELEMENT;
             case INVALID_DATA_TYPE:
             case INVALID_FORMAT:
             case PATTERN_MISMATCH:
             case INVALID_VALUE_RANGE:
-                return CorrectionAction.ActionType.CHANGE_TEXT_CONTENT;
+                return ActionType.CHANGE_TEXT_CONTENT;
             case INVALID_ATTRIBUTE_VALUE:
-                return CorrectionAction.ActionType.MODIFY_ATTRIBUTE;
+                return ActionType.MODIFY_ATTRIBUTE;
             case EMPTY_REQUIRED_CONTENT:
-                return CorrectionAction.ActionType.CHANGE_TEXT_CONTENT;
+                return ActionType.CHANGE_TEXT_CONTENT;
             default:
-                return CorrectionAction.ActionType.MODIFY_ELEMENT;
+                return ActionType.MODIFY_ELEMENT;
         }
     }
 
@@ -235,13 +232,13 @@ public class CorrectionPlanner {
         if (isParentChildRelationship(action.getxPath(), dependency.getxPath())) {
             // Parent must exist before child
             return isParentPath(dependency.getxPath(), action.getxPath()) &&
-                    dependency.getActionType() == CorrectionAction.ActionType.ADD_ELEMENT;
+                    dependency.getActionType() == ActionType.ADD_ELEMENT;
         }
 
         // Ordering dependencies
-        if (action.getActionType() == CorrectionAction.ActionType.REORDER_ELEMENTS) {
+        if (action.getActionType() == ActionType.REORDER_ELEMENTS) {
             // Reordering should happen after all elements are added
-            return dependency.getActionType() == CorrectionAction.ActionType.ADD_ELEMENT &&
+            return dependency.getActionType() == ActionType.ADD_ELEMENT &&
                     isChildOfPath(dependency.getxPath(), action.getxPath());
         }
 
