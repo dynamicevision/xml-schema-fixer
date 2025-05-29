@@ -96,6 +96,10 @@ public class CorrectionEngine {
 
                 for (CorrectionAction action : group.getActions()) {
                     try {
+                        // Log the action details for debugging
+                        logger.debug("Attempting to apply action: {} for error type: {}",
+                                action.getDescription(), action.getRelatedErrorType());
+
                         boolean success = applyCorrectionAction(action, document, rootSchema);
                         if (success) {
                             action.setApplied(true);
@@ -159,6 +163,7 @@ public class CorrectionEngine {
         // Ordering strategies
         OrderingStrategy orderingStrategy = new OrderingStrategy(domManipulator);
         strategies.put(ErrorType.INVALID_ELEMENT_ORDER, orderingStrategy);
+        strategies.put(ErrorType.UNEXPECTED_ELEMENT, orderingStrategy); // Add this mapping!
 
         // Cardinality strategies
         CardinalityStrategy cardinalityStrategy = new CardinalityStrategy(domManipulator);
@@ -176,11 +181,23 @@ public class CorrectionEngine {
         AttributeStrategy attributeStrategy = new AttributeStrategy(domManipulator);
         strategies.put(ErrorType.MISSING_REQUIRED_ATTRIBUTE, attributeStrategy);
         strategies.put(ErrorType.INVALID_ATTRIBUTE_VALUE, attributeStrategy);
+        strategies.put(ErrorType.UNEXPECTED_ATTRIBUTE, attributeStrategy);
 
         // Content strategies
         ContentStrategy contentStrategy = new ContentStrategy(domManipulator);
         strategies.put(ErrorType.EMPTY_REQUIRED_CONTENT, contentStrategy);
         strategies.put(ErrorType.INVALID_CONTENT_MODEL, contentStrategy);
+        strategies.put(ErrorType.MIXED_CONTENT_ERROR, contentStrategy);
+
+        // Schema violation and constraint strategies
+        // These can be handled by multiple strategies depending on the specific constraint
+        strategies.put(ErrorType.SCHEMA_VIOLATION, dataTypeStrategy);
+        strategies.put(ErrorType.CONSTRAINT_VIOLATION, dataTypeStrategy);
+
+        // Log all registered strategies for debugging
+        logger.debug("Registered correction strategies for error types:");
+        strategies.forEach((errorType, strategy) ->
+                logger.debug("  {} -> {}", errorType, strategy.getStrategyName()));
 
         return strategies;
     }
@@ -199,16 +216,63 @@ public class CorrectionEngine {
 
         CorrectionStrategy strategy = correctionStrategies.get(relatedErrorType);
         if (strategy == null) {
-            logger.warn("No correction strategy available for error type: {}", relatedErrorType);
-            return false;
+            logger.warn("No correction strategy available for error type: {}. Available strategies: {}",
+                    relatedErrorType, correctionStrategies.keySet());
+
+            // Try to find a fallback strategy based on action type
+            strategy = findFallbackStrategy(action);
+            if (strategy == null) {
+                return false;
+            }
+            logger.debug("Using fallback strategy: {} for error type: {}",
+                    strategy.getStrategyName(), relatedErrorType);
         }
 
         try {
-            return strategy.canCorrect(action, document, rootSchema) &&
-                    strategy.applyCorrection(action, document, rootSchema);
+            // First check if the strategy can handle this specific action
+            boolean canCorrect = strategy.canCorrect(action, document, rootSchema);
+            if (!canCorrect) {
+                logger.debug("Strategy {} cannot correct action: {}",
+                        strategy.getStrategyName(), action.getDescription());
+                return false;
+            }
+
+            // Apply the correction
+            return strategy.applyCorrection(action, document, rootSchema);
         } catch (Exception e) {
             logger.error("Strategy execution failed for action: {}", action.getDescription(), e);
             return false;
+        }
+    }
+
+    /**
+     * Finds a fallback strategy based on the action type
+     */
+    private CorrectionStrategy findFallbackStrategy(CorrectionAction action) {
+        ActionType actionType = action.getActionType();
+        if (actionType == null) {
+            return null;
+        }
+
+        // Map action types to appropriate strategies
+        switch (actionType) {
+            case ADD_ELEMENT:
+                return correctionStrategies.get(ErrorType.MISSING_REQUIRED_ELEMENT);
+            case REMOVE_ELEMENT:
+                return correctionStrategies.get(ErrorType.TOO_MANY_OCCURRENCES);
+            case MOVE_ELEMENT:
+            case REORDER_ELEMENTS:
+                return correctionStrategies.get(ErrorType.INVALID_ELEMENT_ORDER);
+            case ADD_ATTRIBUTE:
+                return correctionStrategies.get(ErrorType.MISSING_REQUIRED_ATTRIBUTE);
+            case MODIFY_ATTRIBUTE:
+            case REMOVE_ATTRIBUTE:
+                return correctionStrategies.get(ErrorType.INVALID_ATTRIBUTE_VALUE);
+            case CHANGE_TEXT_CONTENT:
+            case MODIFY_ELEMENT:
+                return correctionStrategies.get(ErrorType.INVALID_DATA_TYPE);
+            default:
+                return null;
         }
     }
 
@@ -226,6 +290,11 @@ public class CorrectionEngine {
                                       SchemaElement rootSchema) {
         ErrorType errorType = action.getRelatedErrorType();
         CorrectionStrategy strategy = correctionStrategies.get(errorType);
+
+        if (strategy == null) {
+            // Try fallback strategy
+            strategy = findFallbackStrategy(action);
+        }
 
         return strategy != null && strategy.canCorrect(action, document, rootSchema);
     }

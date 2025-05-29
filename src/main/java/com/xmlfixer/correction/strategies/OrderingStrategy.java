@@ -88,7 +88,10 @@ public class OrderingStrategy implements CorrectionStrategy {
 
     @Override
     public boolean canCorrect(CorrectionAction action, Document document, SchemaElement rootSchema) {
-        return action.getRelatedErrorType() == ErrorType.INVALID_ELEMENT_ORDER;
+        ErrorType errorType = action.getRelatedErrorType();
+        // Handle both INVALID_ELEMENT_ORDER and UNEXPECTED_ELEMENT
+        return errorType == ErrorType.INVALID_ELEMENT_ORDER ||
+                errorType == ErrorType.UNEXPECTED_ELEMENT;
     }
 
     @Override

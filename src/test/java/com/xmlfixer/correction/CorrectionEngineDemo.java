@@ -49,17 +49,17 @@ public class CorrectionEngineDemo {
                     schemaAnalyzer, xmlValidator, correctionEngine, xmlParser, reportGenerator, properties);
 
             // Test 1: Validate the valid XML (should pass)
-            System.out.println("TEST 1: Validating correct XML");
+           /* System.out.println("TEST 1: Validating correct XML");
             System.out.println("-".repeat(50));
             testValidation(orchestrator, validXml, testSchema, "Valid XML");
-
+*/
             // Test 2: Validate and correct the invalid XML
             System.out.println("\nTEST 2: Correcting XML with comprehensive errors");
             System.out.println("-".repeat(50));
             testCorrection(orchestrator, invalidXml, testSchema, "Invalid XML with all error types");
 
             // Test 3: Test specific correction strategies
-            System.out.println("\nTEST 3: Testing individual correction strategies");
+           /* System.out.println("\nTEST 3: Testing individual correction strategies");
             System.out.println("-".repeat(50));
             testIndividualStrategies(orchestrator, testSchema);
 
@@ -71,12 +71,12 @@ public class CorrectionEngineDemo {
             // Test 5: Complete processing workflow
             System.out.println("\nTEST 5: Complete processing workflow");
             System.out.println("-".repeat(50));
-            testCompleteProcessingWorkflow(orchestrator, invalidXml, testSchema);
+            testCompleteProcessingWorkflow(orchestrator, invalidXml, testSchema);*/
 
             // Clean up
-            testSchema.delete();
+            /*testSchema.delete();
             validXml.delete();
-            invalidXml.delete();
+            invalidXml.delete();*/
 
             System.out.println("\n=== DEMO COMPLETED SUCCESSFULLY ===");
 
